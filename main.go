@@ -11,7 +11,11 @@ type Request struct {
 }
 
 func main() {
-	http.HandleFunc("/hello", helloHandler)
+	http.HandleFunc("POST /hello", helloHandler)
+	http.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
