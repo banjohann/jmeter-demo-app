@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -24,5 +23,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("hello %s", req.Name)
-	fmt.Fprintf(w, "hello %s", req.Name)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 }
