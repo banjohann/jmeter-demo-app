@@ -1,33 +1,37 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
-	"net/http"
+	"github.com/JohannBandelow/jmeter-demo-app/handlers"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html/v2"
+	"github.com/gofiber/websocket/v2"
 )
 
-type Request struct {
-	Name string `json:"name"`
-}
-
 func main() {
-	http.HandleFunc("POST /hello", helloHandler)
-	http.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+
+	viewsEngine := html.New("./views", ".html")
+
+	app := fiber.New(fiber.Config{
+		Views: viewsEngine,
 	})
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	var req Request
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	log.Printf("hello %s", req.Name)
+	app.Static("/static/", "./static")
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ok"))
+	appHandler := handlers.NewAppHandler()
+	wsServer := NewWebSocket()
+
+	//app.Use(wsServer.HandleConnections)
+
+	app.Get("/", appHandler.HandleGetIndex)
+	app.Get("/ping", func(c *fiber.Ctx) error {
+		return c.SendString("pong")
+	})
+
+	app.Get("/ws", websocket.New(func(ctx *websocket.Conn) {
+		wsServer.HandleWebSocket(ctx)
+	}))
+
+	go wsServer.HandleMessages()
+
+	app.Listen(":3000")
 }
