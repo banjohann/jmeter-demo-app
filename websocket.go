@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/websocket/v2"
 	"github.com/google/uuid"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type Client struct {
@@ -95,6 +96,11 @@ func getNewForm() []byte {
 }
 
 func getMessageTemplate(msg *Message) []byte {
+	p := bluemonday.NewPolicy()
+
+	message := p.Sanitize(msg.Text)
+	msg.Text = message
+
 	tmpl, err := template.ParseFiles("views/message.html")
 	if err != nil {
 		log.Fatalf("template parsing: %s", err)
