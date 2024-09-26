@@ -14,7 +14,7 @@
     <body>
         <div class="container">
             <div class="chat-window" hx-ext="ws" ws-connect="/ws">
-                <div class="messages" id="messages" hx-swap-oob="beforeend">
+                <div class="messages" id="messages" hx-swap-oob="afterbegin">
                 </div>
                 <form id="form" ws-send hx-swap-oob="true">
                     <div id="inputs" class="input-area">

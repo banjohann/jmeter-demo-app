@@ -22,12 +22,10 @@ body {
 
 .messages {
     padding: 10px;
-    overflow-y: scroll;
+    overflow-y: auto;
     height: 90%;
-}
-
-.messages {
-    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column-reverse;
 }
 
 .messages p {
