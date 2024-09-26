@@ -6,37 +6,43 @@ import (
 	"log"
 	"text/template"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 	"github.com/google/uuid"
 )
 
+type Client struct {
+	conn *websocket.Conn
+	name string
+}
+
+func NewClient(connection *websocket.Conn) *Client {
+	return &Client{
+		conn: connection,
+		name: GetRandomName(),
+	}
+}
+
 type WebSocketServer struct {
 	id        string
-	clients   map[*websocket.Conn]bool
+	clients   map[*Client]bool
 	broadcast chan *Message
 }
 
 func NewWebSocket() *WebSocketServer {
 	return &WebSocketServer{
 		id:        uuid.New().String(),
-		clients:   make(map[*websocket.Conn]bool),
+		clients:   make(map[*Client]bool),
 		broadcast: make(chan *Message),
 	}
 }
 
-func (s *WebSocketServer) HandleConnections(ctx *fiber.Ctx) error {
-	if websocket.IsWebSocketUpgrade(ctx) {
-		return ctx.Next()
-	}
-	return fiber.ErrUpgradeRequired
-}
-
 func (s *WebSocketServer) HandleWebSocket(ctx *websocket.Conn) {
 
-	s.clients[ctx] = true
+	wsClient := NewClient(ctx)
+
+	s.clients[wsClient] = true
 	defer func() {
-		delete(s.clients, ctx)
+		delete(s.clients, wsClient)
 		ctx.Close()
 	}()
 
@@ -52,7 +58,7 @@ func (s *WebSocketServer) HandleWebSocket(ctx *websocket.Conn) {
 			log.Fatalf("Error Unmarshalling")
 		}
 
-		message.ClientName = s.id
+		message.ClientName = wsClient.name
 		s.broadcast <- &message
 	}
 }
@@ -62,10 +68,10 @@ func (s *WebSocketServer) HandleMessages() {
 		msg := <-s.broadcast
 
 		for client := range s.clients {
-			err := client.WriteMessage(websocket.TextMessage, getMessageTemplate(msg))
+			err := client.conn.WriteMessage(websocket.TextMessage, getMessageTemplate(msg))
 			if err != nil {
 				log.Printf("Write  Error: %v ", err)
-				client.Close()
+				client.conn.Close()
 				delete(s.clients, client)
 			}
 		}

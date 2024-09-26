@@ -14,6 +14,7 @@ body {
 
 .chat-window {
     width: 400px;
+    height: 600px;
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -22,14 +23,15 @@ body {
 .messages {
     padding: 10px;
     overflow-y: scroll;
-    height: 300px;
+    height: 90%;
 }
 
-.message {
-    margin-bottom: 10px;
+.messages {
+    margin-bottom: 5px;
 }
 
-.message p {
+.messages p {
+    margin-bottom: 0px;
     background-color: #f0f0f0;
     border-radius: 5px;
     padding: 5px 10px;
@@ -67,3 +69,4 @@ body {
 .input-area button:active {
     background-color: #3e8e41;
 }
+
