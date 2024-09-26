@@ -59,6 +59,7 @@ func (s *WebSocketServer) HandleWebSocket(ctx *websocket.Conn) {
 		}
 
 		message.ClientName = wsClient.name
+		wsClient.conn.WriteMessage(websocket.TextMessage, getNewForm())
 		s.broadcast <- &message
 	}
 }
@@ -76,6 +77,21 @@ func (s *WebSocketServer) HandleMessages() {
 			}
 		}
 	}
+}
+
+func getNewForm() []byte {
+	tmpl, err := template.ParseFiles("views/form.html")
+	if err != nil {
+		log.Fatalf("template parsing: %s", err)
+	}
+
+	var renderedMessage bytes.Buffer
+	err = tmpl.Execute(&renderedMessage, "")
+	if err != nil {
+		log.Fatalf("template execution: %s", err)
+	}
+
+	return renderedMessage.Bytes()
 }
 
 func getMessageTemplate(msg *Message) []byte {
