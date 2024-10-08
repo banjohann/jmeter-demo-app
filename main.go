@@ -20,8 +20,6 @@ func main() {
 	appHandler := handlers.NewAppHandler()
 	wsServer := NewWebSocket()
 
-	//app.Use(wsServer.HandleConnections)
-
 	app.Get("/", appHandler.HandleGetIndex)
 	app.Get("/ping", func(c *fiber.Ctx) error {
 		return c.SendString("pong")
@@ -30,6 +28,18 @@ func main() {
 	app.Get("/ws", websocket.New(func(ctx *websocket.Conn) {
 		wsServer.HandleWebSocket(ctx)
 	}))
+
+	app.Post("/message", func(c *fiber.Ctx) error {
+		msg := new(Message)
+
+		if err := c.BodyParser(msg); err != nil {
+			return err
+		}
+
+		wsServer.PublishMessage(msg)
+
+		return c.Send([]byte(msg.ClientName))
+	})
 
 	go wsServer.HandleMessages()
 

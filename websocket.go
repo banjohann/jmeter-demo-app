@@ -38,7 +38,6 @@ func NewWebSocket() *WebSocketServer {
 }
 
 func (s *WebSocketServer) HandleWebSocket(ctx *websocket.Conn) {
-
 	wsClient := NewClient(ctx)
 
 	s.clients[wsClient] = true
@@ -65,18 +64,22 @@ func (s *WebSocketServer) HandleWebSocket(ctx *websocket.Conn) {
 	}
 }
 
+func (s *WebSocketServer) PublishMessage(msg *Message) {
+	for client := range s.clients {
+		err := client.conn.WriteMessage(websocket.TextMessage, getMessageTemplate(msg))
+		if err != nil {
+			log.Printf("Write  Error: %v ", err)
+			client.conn.Close()
+			delete(s.clients, client)
+		}
+	}
+}
+
 func (s *WebSocketServer) HandleMessages() {
 	for {
 		msg := <-s.broadcast
 
-		for client := range s.clients {
-			err := client.conn.WriteMessage(websocket.TextMessage, getMessageTemplate(msg))
-			if err != nil {
-				log.Printf("Write  Error: %v ", err)
-				client.conn.Close()
-				delete(s.clients, client)
-			}
-		}
+		s.PublishMessage(msg)
 	}
 }
 
