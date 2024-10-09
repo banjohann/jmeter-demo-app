@@ -32,7 +32,7 @@ func GetRandomName() string {
 
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	randomNumber := rand.Intn(200) + 1
+	randomNumber := rand.Intn(200)
 	randomName := names[randomNumber]
 
 	return randomName
