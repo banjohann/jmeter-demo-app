@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
+	"sync"
 	"text/template"
 
 	"github.com/gofiber/websocket/v2"
@@ -27,6 +28,7 @@ type WebSocketServer struct {
 	id        string
 	clients   map[*Client]bool
 	broadcast chan *Message
+	mu        sync.Mutex
 }
 
 func NewWebSocket() *WebSocketServer {
@@ -65,6 +67,8 @@ func (s *WebSocketServer) HandleWebSocket(ctx *websocket.Conn) {
 }
 
 func (s *WebSocketServer) PublishMessage(msg *Message) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	for client := range s.clients {
 		err := client.conn.WriteMessage(websocket.TextMessage, getMessageTemplate(msg))
 		if err != nil {
