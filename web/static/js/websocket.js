@@ -1,9 +1,9 @@
-const reconnectInterval = 5000;
-const maxReconnectAttempts = 3;
+import { onNewMessage } from "./renderer";
+import { Message } from "./message"
+
 const isSecureConn = window.location.protocol === "https:";
 
 let socket;
-let reconnectAttempts = 0;
 
 const newWebsocketConnection = () => {
   let protocol = isSecureConn ? "wss" : "ws";
@@ -17,19 +17,9 @@ const newWebsocketConnection = () => {
   socket.onclose = (event) => {};
 
   socket.onmessage = (event) => {
-    let data = JSON.parse(event.data)
-    console.log(data)
-
-    if (data.type == 1) {
-      console.log(data.client_name)
-      renderClientName(data.client_name)
-    }
+    let jsonData = JSON.parse(event.data) 
+    onNewMessage(new Message(jsonData.clientName, jsonData.text, jsonData.type))
   };
 };
-
-const renderClientName = (clientName) => {
-  document.getElementById('user__name').textContent = clientName;
-}
-
 
 export { socket, newWebsocketConnection };
